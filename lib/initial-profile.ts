@@ -1,33 +1,40 @@
 import { currentUser } from "@clerk/nextjs/server"
-import { RedirectToSignIn} from "@clerk/nextjs"
-
+import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 
 export const initialProfile = async () => {
-    const user = await currentUser();
+    try {
+        const user = await currentUser();
 
-    if (!user) {
-        return RedirectToSignIn();
-    }
-
-    const profile = await db.profile.findUnique({
-        where: {
-            userId: user.id
+        if (!user) {
+            return NextResponse.redirect('/sign-in');
         }
-    })
 
-    if(profile) {
-        return profile
-    }
+        // Check if the user already has a profile
+        const profile = await db.profile.findUnique({
+            where: {
+                userId: user.id
+            }
+        });
 
-    const newProfile = await db.profile.create({
-        data: {
-            userId: user.id,
-            name: `${user.firstName} ${user.lastName}`,
-            imageUrl: user.imageUrl,
-            email: user.emailAddresses[0].emailAddress
+        if (profile) {
+            return profile;  // Return existing profile if found
         }
-    })
-    
-    return newProfile;
+
+        // If no profile exists, create a new one
+        const newProfile = await db.profile.create({
+            data: {
+                //id : user.id
+                userId: user.id,
+                name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+                imageUrl: user.imageUrl || '',  // Fallback if no image URL
+                email: user.emailAddresses?.[0]?.emailAddress || '',  // Fallback if no email
+            }
+        });
+
+        return newProfile;
+    } catch (error) {
+        console.error("Error fetching or creating profile:", error);
+        return NextResponse.error();  // Return an error response if something goes wrong
+    }
 }
