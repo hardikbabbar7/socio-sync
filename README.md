@@ -1,6 +1,6 @@
-# 🎧 Discord Clone  
+# 🎧 SocioSync 
 
-A sleek real-time chat app inspired by Discord, built using:  
+A sleek real-time chat app built using:  
 
 - ✨ **Next.js** – Modern React framework for server-side rendering.  
 - 🎨 **ShadCN** – Pre-styled components for rapid UI building.  
